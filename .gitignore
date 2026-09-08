@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# secrets — the one .env at the project root
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+build/
+.next/
+out/
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / os
+.vscode/
+.DS_Store
+Thumbs.db
+
+# tests
+coverage/
