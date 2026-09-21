@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BrandMark } from "@/components/layout/brand-mark";
 import { useAuth } from "@/lib/auth-context";
 
 export default function LoginPage() {
@@ -36,18 +37,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-navy px-4">
-      <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-lg">
-        <div className="mb-6 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-brand-pink" />
-          <span className="text-lg font-semibold text-brand-navy">Business Formula</span>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-navy to-brand-navyDark px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
+        <div className="mb-7">
+          <BrandMark tone="light" />
         </div>
-        <h1 className="mb-1 text-xl font-semibold text-gray-900">Sign in</h1>
-        <p className="mb-6 text-sm text-gray-500">Review Auto-Reply dashboard</p>
+        <h1 className="mb-1 text-xl font-bold text-ink">Sign in</h1>
+        <p className="mb-6 text-sm text-muted">Review Auto-Reply dashboard</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-ink">
               Email
             </label>
             <input
@@ -56,11 +56,11 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-pink focus:outline-none focus:ring-1 focus:ring-brand-pink"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-brand-pink focus:outline-none focus:ring-2 focus:ring-brand-pink/20"
             />
           </div>
           <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-ink">
               Password
             </label>
             <input
@@ -70,7 +70,7 @@ export default function LoginPage() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-pink focus:outline-none focus:ring-1 focus:ring-brand-pink"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm text-ink focus:border-brand-pink focus:outline-none focus:ring-2 focus:ring-brand-pink/20"
             />
           </div>
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-brand-pink py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+            className="w-full rounded-lg bg-brand-pink py-2.5 text-sm font-semibold text-white transition hover:bg-brand-pinkDark disabled:opacity-50"
           >
             {isSubmitting ? "Signing in…" : "Sign in"}
           </button>

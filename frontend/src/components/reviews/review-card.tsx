@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Review } from "@/types/api";
-import { formatRelativeTime } from "./relative-time";
+import { formatDateTime, formatRelativeTime } from "./relative-time";
 import { StarRating } from "./star-rating";
 
 interface ReviewCardProps {
@@ -29,7 +29,7 @@ export function ReviewCard({ review, onApprove, onReject }: ReviewCardProps) {
   }
 
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-4">
+    <article className="rounded-xl border border-line bg-white p-4 shadow-card">
       <div className="flex items-start gap-3">
         <Avatar name={review.reviewerName} />
 
@@ -38,7 +38,11 @@ export function ReviewCard({ review, onApprove, onReject }: ReviewCardProps) {
             <span className="font-medium text-gray-900">{review.reviewerName}</span>
             <StarRating rating={review.rating} />
             <span className="text-xs text-gray-500">
-              Google · {review.location.name} · {formatRelativeTime(review.reviewedAt)}
+              Google · {review.location.name} ·{" "}
+              <time dateTime={review.reviewedAt} title={formatRelativeTime(review.reviewedAt)}>
+                {formatDateTime(review.reviewedAt)}
+              </time>{" "}
+              <span className="text-gray-400">({formatRelativeTime(review.reviewedAt)})</span>
             </span>
             <span className="ml-auto">
               <StatusBadge status={reply?.status} />
@@ -80,7 +84,7 @@ export function ReviewCard({ review, onApprove, onReject }: ReviewCardProps) {
                   <button
                     onClick={() => run(() => onApprove(reply.id, draft))}
                     disabled={isBusy}
-                    className="rounded-md bg-brand-pink px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                    className="rounded-md bg-brand-pink px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-pinkDark disabled:opacity-50"
                   >
                     {isBusy ? "Working…" : "Approve & post"}
                   </button>
@@ -105,7 +109,7 @@ export function ReviewCard({ review, onApprove, onReject }: ReviewCardProps) {
 
           {!reply && (
             <p className="mt-3 text-xs italic text-gray-400">
-              No reply drafted yet — run the AI pipeline to generate one.
+              No reply drafted yet - run the AI pipeline to generate one.
             </p>
           )}
         </div>

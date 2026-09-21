@@ -1,6 +1,6 @@
 /**
  * Chart palette. Validated with the dataviz validator against the light
- * surface — do not substitute by eye:
+ * surface - do not substitute by eye:
  *
  *   accent vs deemphasis: CVD ΔE 8.5 (deutan), normal-vision ΔE 22.6,
  *   both ≥ 3:1 contrast on surface.
@@ -10,9 +10,9 @@
  * identity slot, so the chroma floor does not apply to it.
  */
 export const CHART = {
-  accent: "#d6155a",
-  /** Light step of the accent hue — the meter's same-ramp track. */
-  accentTrack: "#f7cfdd",
+  accent: "#DD1157", // iBusinessFormula brand magenta
+  /** Light step of the accent hue - the meter's same-ramp track. */
+  accentTrack: "#F8CEDC",
   deemphasis: "#6b7280",
   gridline: "#e5e7eb",
   textPrimary: "#111827",

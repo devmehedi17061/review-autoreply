@@ -1,19 +1,22 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ReplyStatus, RiskLevel } from "@prisma/client";
-import { BrandPromptBuilder } from "../ai/prompts/brand-prompt.builder";
-import { AI_PROVIDER, AiProvider } from "../ai/providers/ai-provider.interface";
 import { PrismaService } from "../common/prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
+import { selectReplyDraft } from "../replies/reply-templates";
 import { SentimentRiskService } from "../safety/sentiment-risk.service";
 import { ReviewsService, ReviewWithDetail } from "./reviews.service";
 
 /**
- * The heart of the system: takes a stored review and runs it through
- * assess risk → generate reply → route to auto-post or human approval.
+ * Takes a stored review and runs it through assess risk -> select the client's
+ * approved reply template -> route to draft or human approval.
  *
- * Deliberately ordered risk-first. Assessing before generating means a review
- * that must go to a human is flagged even if the AI provider is down or out
- * of credit — the safety decision never depends on a third party being up.
+ * Reply text is NOT generated. It is chosen verbatim from the client's approved
+ * BirdEye templates (see ../replies/reply-templates.ts) and only the reviewer's
+ * first name is filled in.
+ *
+ * DRAFT ONLY: nothing is posted to Google here. BirdEye is still the live
+ * system of record, so every result is a draft on the dashboard for a person to
+ * see. No reply is marked POSTED by this pipeline.
  */
 @Injectable()
 export class ReviewProcessorService {
@@ -23,12 +26,10 @@ export class ReviewProcessorService {
     private readonly prisma: PrismaService,
     private readonly reviews: ReviewsService,
     private readonly risk: SentimentRiskService,
-    private readonly promptBuilder: BrandPromptBuilder,
     private readonly notifications: NotificationsService,
-    @Inject(AI_PROVIDER) private readonly ai: AiProvider,
   ) {}
 
-  /** Processes everything still awaiting a reply. Returns how many succeeded. */
+  /** Processes everything still awaiting a draft. Returns how many succeeded. */
   async processPending(): Promise<{ processed: number; failed: number }> {
     const pending = await this.reviews.findUnprocessed();
     let processed = 0;
@@ -67,35 +68,49 @@ export class ReviewProcessorService {
       },
     });
 
-    const systemPrompt = this.promptBuilder.build(review.location.brand, review.location, review.rating);
-    const draft = await this.ai.generateReply({
-      systemPrompt,
-      reviewerName: review.reviewerName,
+    const selection = selectReplyDraft({
+      brandName: review.location.brand.name,
       rating: review.rating,
       reviewText: review.reviewText,
+      reviewerName: review.reviewerName,
+      seed: review.externalReviewId || review.id,
     });
 
-    // High risk is held for a person; low risk is approved for posting.
-    const status = assessment.riskLevel === RiskLevel.HIGH ? ReplyStatus.PENDING_APPROVAL : ReplyStatus.APPROVED;
+    // Status, draft-only. Nothing is posted to Google from here.
+    //  - No approved template, or the review is high risk (low rating or a
+    //    flagged topic, e.g. a 5-star review that mentions rude staff):
+    //    hold for a person -> PENDING_APPROVAL.
+    //  - Safe positive with an approved template: ready draft on the dashboard
+    //    -> GENERATED. It is NOT auto-posted while BirdEye is still live.
+    const holdForPerson = !selection.draft || assessment.riskLevel === RiskLevel.HIGH;
+    const status = holdForPerson ? ReplyStatus.PENDING_APPROVAL : ReplyStatus.GENERATED;
+
+    // When there is no approved wording, surface the reason as the draft so the
+    // person knows to write it manually rather than seeing an empty box.
+    const draftText = selection.draft ?? (selection.note ?? "No approved template for this case. Please write a reply manually.");
 
     await this.prisma.reply.upsert({
       where: { reviewId: review.id },
-      update: { aiDraft: draft, status, aiProvider: this.ai.name, aiModel: this.ai.model },
+      update: { aiDraft: draftText, status, aiProvider: "template", aiModel: "birdeye-approved-v1" },
       create: {
         reviewId: review.id,
-        aiDraft: draft,
+        aiDraft: draftText,
         status,
-        aiProvider: this.ai.name,
-        aiModel: this.ai.model,
+        aiProvider: "template",
+        aiModel: "birdeye-approved-v1",
       },
     });
 
     await this.reviews.markProcessed(review.id);
 
     if (status === ReplyStatus.PENDING_APPROVAL) {
-      await this.notifications.notifyNeedsApproval(review, assessment.reason);
+      const reason = selection.draft ? assessment.reason : (selection.note ?? assessment.reason);
+      await this.notifications.notifyNeedsApproval(review, reason);
     }
 
-    this.logger.log(`Review ${review.id} (${review.rating}★) → ${status}`);
+    this.logger.log(
+      `Review ${review.id} (${review.rating}star, ${selection.category}) -> ${status}` +
+        (selection.variant ? ` [template variant ${selection.variant}]` : " [no approved template]"),
+    );
   }
 }

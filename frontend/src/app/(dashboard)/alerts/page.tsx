@@ -39,9 +39,9 @@ export default function AlertsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-lg font-semibold text-gray-900">Alerts</h1>
+        <h1 className="text-lg font-semibold text-ink">Alerts</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Reviews held for a person — either low-rated, or flagged for sensitive content the star
+          Reviews held for a person - either low-rated, or flagged for sensitive content the star
           rating alone would have missed.
         </p>
       </div>

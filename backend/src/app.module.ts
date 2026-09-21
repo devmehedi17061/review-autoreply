@@ -9,6 +9,7 @@ import { LocationsModule } from "./locations/locations.module";
 import { ReviewsModule } from "./reviews/reviews.module";
 import { RepliesModule } from "./replies/replies.module";
 import { ReportsModule } from "./reports/reports.module";
+import { PlatformAccountsModule } from "./platform-accounts/platform-accounts.module";
 
 @Module({})
 export class AppModule {
@@ -25,6 +26,7 @@ export class AppModule {
         ReviewsModule,
         RepliesModule,
         ReportsModule,
+        PlatformAccountsModule,
       ],
     };
   }

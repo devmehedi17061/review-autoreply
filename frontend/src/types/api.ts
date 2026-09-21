@@ -89,3 +89,29 @@ export interface WeeklyVolume {
   replied: number;
   pending: number;
 }
+
+export type PlatformAccountStatus = "CONNECTED" | "DISCONNECTED" | "ERROR";
+
+export interface PlatformAccountCoverage {
+  brandId: string;
+  brandName: string;
+  locationCount: number;
+}
+
+export interface PlatformAccount {
+  id: string;
+  accountEmail: string;
+  status: PlatformAccountStatus;
+  connectedAt: string;
+  /** The brands this one login actually covers, by linked campus count. */
+  coverage: PlatformAccountCoverage[];
+}
+
+export interface SyncSummary {
+  accountsSynced: number;
+  reviewsSeen: number;
+  created: number;
+  updated: number;
+  processed: number;
+  failed: number;
+}

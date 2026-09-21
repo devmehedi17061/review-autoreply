@@ -15,3 +15,14 @@ export function formatRelativeTime(isoDate: string): string {
   const days = Math.floor(elapsed / DAY);
   return days === 1 ? "1 day ago" : `${days} days ago`;
 }
+
+/** Exact local date and time, e.g. "21 Sep 2026, 2:15 PM". */
+export function formatDateTime(isoDate: string): string {
+  return new Date(isoDate).toLocaleString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}

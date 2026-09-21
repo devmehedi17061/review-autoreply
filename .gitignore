@@ -23,3 +23,10 @@ Thumbs.db
 
 # tests
 coverage/
+
+# build artifacts
+*.tsbuildinfo
+
+# local snapshots / archives (not part of the source)
+*.tgz
+_to_delete/

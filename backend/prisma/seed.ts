@@ -12,7 +12,7 @@ const DEV_FALLBACK_PASSWORD = "change-me-now";
  * placeholder campuses each (rename them to the real campus names via
  * Settings once confirmed), and one admin user to log into the dashboard.
  *
- * Safe to re-run — everything is upserted by a stable natural key.
+ * Safe to re-run - everything is upserted by a stable natural key.
  */
 async function main() {
   const ace = await prisma.brand.upsert({
@@ -43,14 +43,14 @@ async function main() {
         create: {
           id: `${brand.id}-placeholder-campus-${i}`,
           brandId: brand.id,
-          name: `${brand.name} — Campus ${i} (rename me)`,
+          name: `${brand.name} - Campus ${i} (rename me)`,
         },
       });
     }
   }
 
   // `||` not `??`: dotenv turns a blank `KEY=` line into an empty string, and
-  // `??` would happily accept "" — seeding an admin account with no password.
+  // `??` would happily accept "" - seeding an admin account with no password.
   const adminEmail = process.env.ADMIN_SEED_EMAIL?.trim() || "admin@example.com";
   const configuredPassword = process.env.ADMIN_SEED_PASSWORD?.trim();
   const adminPassword = configuredPassword || DEV_FALLBACK_PASSWORD;
@@ -58,11 +58,11 @@ async function main() {
   if (!configuredPassword) {
     if (process.env.NODE_ENV === "production") {
       throw new Error(
-        "ADMIN_SEED_PASSWORD must be set when seeding in production — refusing to create an admin account with a publicly known password.",
+        "ADMIN_SEED_PASSWORD must be set when seeding in production - refusing to create an admin account with a publicly known password.",
       );
     }
     console.warn(
-      `⚠ ADMIN_SEED_PASSWORD not set — using the insecure development password "${DEV_FALLBACK_PASSWORD}" for ${adminEmail}. ` +
+      `⚠ ADMIN_SEED_PASSWORD not set - using the insecure development password "${DEV_FALLBACK_PASSWORD}" for ${adminEmail}. ` +
         "Set ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD in the root .env before seeding a real environment.",
     );
   }

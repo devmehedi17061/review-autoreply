@@ -81,7 +81,7 @@ export default function ReviewsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-lg font-semibold text-gray-900">Google Reviews</h1>
+        <h1 className="text-lg font-semibold text-ink">Google Reviews</h1>
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -102,7 +102,7 @@ export default function ReviewsPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-4 border-b border-gray-200 text-sm">
+      <div className="flex flex-wrap gap-4 border-b border-line text-sm">
         <TabButton label="All" count={counts.all} active={tab === "all"} onClick={() => setTab("all")} />
         <TabButton
           label="Needs approval"

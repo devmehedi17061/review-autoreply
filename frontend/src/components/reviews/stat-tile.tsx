@@ -9,12 +9,14 @@ export function StatTile({
 }) {
   return (
     <div
-      className={`rounded-lg border p-4 ${
-        highlight ? "border-brand-pink bg-brand-pink text-white" : "border-gray-200 bg-white"
+      className={`rounded-xl border p-4 shadow-card ${
+        highlight
+          ? "border-transparent bg-gradient-to-br from-brand-pink to-brand-pinkDark text-white"
+          : "border-line bg-white text-ink"
       }`}
     >
-      <div className="text-2xl font-semibold">{value}</div>
-      <div className={`mt-1 text-xs ${highlight ? "text-white/80" : "text-gray-500"}`}>{label}</div>
+      <div className="text-2xl font-bold tracking-tight">{value}</div>
+      <div className={`mt-1 text-xs font-medium ${highlight ? "text-white/85" : "text-muted"}`}>{label}</div>
     </div>
   );
 }

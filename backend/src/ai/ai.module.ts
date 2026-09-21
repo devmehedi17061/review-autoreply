@@ -5,6 +5,7 @@ import { BrandPromptBuilder } from "./prompts/brand-prompt.builder";
 import { AI_PROVIDER, AiProvider } from "./providers/ai-provider.interface";
 import { AnthropicProvider } from "./providers/anthropic.provider";
 import { GeminiProvider } from "./providers/gemini.provider";
+import { MockProvider } from "./providers/mock.provider";
 import { OpenAiProvider } from "./providers/openai.provider";
 
 const KEY_BY_PROVIDER = {
@@ -24,11 +25,19 @@ const KEY_BY_PROVIDER = {
  * error if generation is actually attempted without it.
  */
 function createAiProvider(env: Env): AiProvider {
+  // Offline template provider - needs no API key. Local dev / demo only.
+  if (env.AI_PROVIDER === "mock") {
+    new Logger("AiModule").warn(
+      'AI_PROVIDER is "mock" - replies are generated from local templates, not a real model. Do not use in production.',
+    );
+    return new MockProvider();
+  }
+
   const key = (env[KEY_BY_PROVIDER[env.AI_PROVIDER]] ?? "").trim();
 
   if (!key) {
     new Logger("AiModule").warn(
-      `AI_PROVIDER is "${env.AI_PROVIDER}" but ${KEY_BY_PROVIDER[env.AI_PROVIDER]} is not set in .env — ` +
+      `AI_PROVIDER is "${env.AI_PROVIDER}" but ${KEY_BY_PROVIDER[env.AI_PROVIDER]} is not set in .env - ` +
         "reply generation will fail until it is. Everything else works.",
     );
   }

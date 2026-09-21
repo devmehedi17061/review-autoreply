@@ -1,8 +1,8 @@
 import { Transform } from "class-transformer";
-import { IsBooleanString, IsEnum, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 import { ReplyStatus } from "@prisma/client";
 
-/** Query params for the review inbox. All optional — omitted means "no filter". */
+/** Query params for the review inbox. All optional - omitted means "no filter". */
 export class ReviewFiltersDto {
   @IsOptional()
   @IsString()
@@ -23,8 +23,10 @@ export class ReviewFiltersDto {
   @IsString()
   search?: string;
 
+  // Transform runs before validation, so the incoming "true"/"false" query
+  // string is coerced to a real boolean first and then validated as one.
   @IsOptional()
-  @IsBooleanString()
-  @Transform(({ value }) => value === "true")
+  @Transform(({ value }) => value === "true" || value === true)
+  @IsBoolean()
   needsApproval?: boolean;
 }

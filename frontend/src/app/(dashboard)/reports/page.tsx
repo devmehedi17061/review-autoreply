@@ -42,7 +42,7 @@ export default function ReportsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">Monthly Report</h1>
+          <h1 className="text-lg font-semibold text-ink">Monthly Report</h1>
           <p className="text-sm text-gray-500">
             {selectedBrandId ? brands.find((b) => b.id === selectedBrandId)?.name : "All brands"} · all campuses
           </p>
@@ -73,10 +73,10 @@ export default function ReportsPage() {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="rounded-lg border border-line bg-white p-4">
           <WeeklyVolumeChart data={weekly} />
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="rounded-lg border border-line bg-white p-4">
           {stats && (
             <ResponseRateMeter
               responseRate={stats.responseRate}
@@ -88,13 +88,13 @@ export default function ReportsPage() {
       </div>
 
       {stats && (
-        <details className="rounded-lg border border-gray-200 bg-white p-4">
-          <summary className="cursor-pointer text-sm font-medium text-gray-900">
+        <details className="rounded-lg border border-line bg-white p-4">
+          <summary className="cursor-pointer text-sm font-medium text-ink">
             View as table
           </summary>
           <table className="mt-3 w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-xs uppercase text-gray-500">
+              <tr className="border-b border-line text-xs uppercase text-gray-500">
                 <th className="pb-2">Week</th>
                 <th className="pb-2">Replied</th>
                 <th className="pb-2">Pending approval</th>

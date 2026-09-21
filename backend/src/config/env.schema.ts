@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** dotenv turns `KEY=` into an empty string, not undefined — without this, an
+/** dotenv turns `KEY=` into an empty string, not undefined - without this, an
  *  optional field left blank on purpose (e.g. to disable Slack alerts) would
  *  fail a `.url()`/`.number()` check instead of being treated as "not set". */
 const blankToUndefined = (value: unknown) =>
@@ -40,12 +40,12 @@ export const envSchema = z.object({
   GOOGLE_OAUTH_REDIRECT_URI: z.string().url(),
 
   // AI provider (build phase 7)
-  AI_PROVIDER: z.enum(["openai", "anthropic", "gemini"]).default("openai"),
+  AI_PROVIDER: z.enum(["openai", "anthropic", "gemini", "mock"]).default("openai"),
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
 
-  // Notifications (build phase 11) — leave blank to disable that channel
+  // Notifications (build phase 11) - leave blank to disable that channel
   SLACK_WEBHOOK_URL: z.preprocess(blankToUndefined, z.string().url().optional()),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.preprocess(blankToUndefined, z.coerce.number().int().positive().optional()),
@@ -57,6 +57,16 @@ export const envSchema = z.object({
 
   // Monitoring (build phase 12)
   SENTRY_DSN: z.string().optional(),
+
+  // Read-only Google review sync
+  // When true, the backend polls connected Google accounts on a timer. Off by
+  // default so it never runs unless explicitly enabled. Manual sync via the
+  // POST /platform-accounts/sync endpoint works regardless of this flag.
+  REVIEW_SYNC_ENABLED: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim().toLowerCase() === "true" : v),
+    z.boolean().default(false),
+  ),
+  REVIEW_SYNC_INTERVAL_MIN: z.coerce.number().int().positive().default(15),
 });
 
 export type Env = z.infer<typeof envSchema>;
