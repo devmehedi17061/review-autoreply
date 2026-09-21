@@ -32,16 +32,19 @@ const MST_PHONE = "1800 754 557";
 
 /**
  * Note on gaps, kept deliberately:
- *  - ACE "positive_noComment" is blank in the source document, so there is no
- *    approved wording. Those reviews are held for a person rather than guessed.
  *  - MST "negative_comment" is marked DO NOT USE in the source document, so it
  *    is intentionally left empty and those reviews are held for a person.
+ * (ACE "positive_noComment" was previously blank; Larissa has since supplied
+ *  the approved wording, now included below.)
  */
 const REPLY_KITS: Record<string, BrandReplyKit> = {
   "ACE Training": {
     phone: ACE_PHONE,
     templates: {
-      positive_noComment: [],
+      positive_noComment: [
+        `Hi [Name],\nThank you for your review. We are glad to know you had a good learning experience with us. Both our team and trainers put in a lot of effort to ensure every student gets the most out of their course, and your feedback means a lot to us.\nWe look forward to having you back again!`,
+        `Hi [Name],\nThank you for your feedback. At ACE Training, we strive to create a fruitful learning environment and we are pleased to know that we have met your expectations. Your support is greatly appreciated.\nWe would love to have you back again!`,
+      ],
       positive_comment: [
         `Hi [Name],\nThank you for your wonderful feedback. We are thrilled to hear that you enjoyed your training and that our team made a real difference in your learning. It is great to know you felt supported and confident throughout the course.\nWe would love to have you back in future courses. Let us know if you need any additional details by calling us on ${ACE_PHONE}.`,
         `Hi [Name],\nWe really appreciate your kind words. It is fantastic to hear that your time with ACE Training was a positive one and that our trainers helped you achieve your goals.\nWe would love to have you back in future courses. Let us know if you need any additional details by calling us on ${ACE_PHONE}.`,
@@ -121,7 +124,7 @@ function pickVariant(seed: string, count: number): number {
 /**
  * Selects the client-approved reply for a review and fills in the first name.
  * Returns draft = null when the client has no approved wording for that case
- * (ACE positive-with-no-comment, or MST negative-with-comment) so the caller
+ * (currently only MST negative-with-comment, marked DO NOT USE) so the caller
  * holds it for a person instead of posting anything.
  */
 export function selectReplyDraft(input: {

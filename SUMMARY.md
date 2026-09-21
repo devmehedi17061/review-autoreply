@@ -105,7 +105,7 @@ npm test                      # backend unit tests (jest)
 - **`backend/src/replies/reply-templates.ts`** - the client's Birdeye-approved reply wordings, verbatim, per brand and scenario. Phone numbers baked in: **ACE `1800 456 094`, MST `1800 754 557`**.
   - Scenarios: `positive_comment`, `positive_noComment`, `negative_comment`, `negative_noComment` (positive = rating >= 4, comment = review has text).
   - Two variants per scenario, chosen deterministically per review; `[Name]` replaced with the reviewer's first name.
-  - Deliberate gaps (held for a person, no auto text): **ACE positive-no-comment is blank in the client doc**, and **MST negative-with-comment is marked DO NOT USE**.
+  - Deliberate gap (held for a person, no auto text): **MST negative-with-comment is marked DO NOT USE** in the client doc. (ACE positive-no-comment was previously blank; Larissa has since supplied the approved wording and it is now in the file.)
 - **`backend/src/reviews/review-processor.service.ts`** - for each review: assess risk -> select approved template -> set status. **Draft only, nothing posted.**
   - Safe positive with a template -> `GENERATED` (ready draft on dashboard).
   - Negative, flagged (e.g. 5-star that mentions rude staff), or no approved template -> `PENDING_APPROVAL` (held; sends approval notification).
@@ -160,7 +160,7 @@ Auth (Bearer JWT on everything except the OAuth callback):
 7. **Location-to-brand mapping.** All discovered locations attach to the single brand chosen at connect. `support@` manages both ACE and MST (26 businesses), so some will land under the wrong brand. Build a Settings screen to reassign a Location's brand, or map by Google account/location id at connect.
 8. **Posting to Google is NOT implemented** (intentional - Birdeye is live). When ready to switch over: add a write path using My Business v4 `accounts.locations.reviews.updateReply`, gated behind an explicit `AUTO_POST` / per-brand toggle, and wire APPROVED -> POSTED. Keep the read-only client separate from any writer.
 9. **Auto-approve/auto-post policy.** Currently everything is a draft (safe positives = GENERATED, rest = PENDING_APPROVAL). Decide the go-live policy (e.g. auto-post safe positives) once posting exists.
-10. **ACE positive-no-comment wording is missing** (blank in the client doc). Get the approved text from the client and add it to `reply-templates.ts`, otherwise those reviews are held for manual reply.
+10. ~~ACE positive-no-comment wording is missing~~ **DONE** - Larissa supplied the approved wording (doc variants 1.1/1.2); added to `reply-templates.ts`, so ACE 5-star no-comment reviews now auto-draft. The only remaining gap is MST negative-with-comment (marked DO NOT USE), held for a person by design.
 11. **Scheduler.** The poller is a simple in-process `setInterval` (fine for one instance). For production/multi-instance, move to a real queue (BullMQ + Redis; Redis vars already stubbed in `.env.example`).
 12. **AI provider path is bypassed.** Decide whether to keep AI generation as a fallback/variation on top of templates, or remove the `ai/` module. If kept, feed the approved templates as few-shot style examples.
 13. **Hardening:** rate-limit handling / backoff for Google API, token revocation handling, e2e tests for the sync path, CI, production secrets management.
