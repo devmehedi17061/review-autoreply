@@ -10,7 +10,7 @@
  * identity slot, so the chroma floor does not apply to it.
  */
 export const CHART = {
-  accent: "#DD1157", // iBusinessFormula brand magenta
+  accent: "#DD1157", // brand magenta accent
   /** Light step of the accent hue - the meter's same-ramp track. */
   accentTrack: "#F8CEDC",
   deemphasis: "#6b7280",

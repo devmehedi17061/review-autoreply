@@ -1,22 +1,21 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ReplyStatus, RiskLevel } from "@prisma/client";
+import { ReplyStatus } from "@prisma/client";
 import { PrismaService } from "../common/prisma/prisma.service";
 import { NotificationsService } from "../notifications/notifications.service";
-import { selectReplyDraft } from "../replies/reply-templates";
+import { AutoReplyService } from "../replies/auto-reply.service";
 import { SentimentRiskService } from "../safety/sentiment-risk.service";
 import { ReviewsService, ReviewWithDetail } from "./reviews.service";
 
 /**
- * Takes a stored review and runs it through assess risk -> select the client's
- * approved reply template -> route to draft or human approval.
+ * Takes a stored review and runs it through assess risk -> select a reply via
+ * the configurable auto-reply rules -> route to draft or human approval.
  *
- * Reply text is NOT generated. It is chosen verbatim from the client's approved
- * BirdEye templates (see ../replies/reply-templates.ts) and only the reviewer's
- * first name is filled in.
+ * Routing mirrors Birdeye: the DB-backed auto-reply rules (rating + comment)
+ * decide which template is used. A matching rule -> a ready draft (Birdeye would
+ * auto-post it after the rule's delay). No matching rule (e.g. 1-2 stars with a
+ * comment) -> held for a person.
  *
- * DRAFT ONLY: nothing is posted to Google here. BirdEye is still the live
- * system of record, so every result is a draft on the dashboard for a person to
- * see. No reply is marked POSTED by this pipeline.
+ * DRAFT ONLY: nothing is posted to Google here. Posting is a separate build.
  */
 @Injectable()
 export class ReviewProcessorService {
@@ -26,6 +25,7 @@ export class ReviewProcessorService {
     private readonly prisma: PrismaService,
     private readonly reviews: ReviewsService,
     private readonly risk: SentimentRiskService,
+    private readonly autoReply: AutoReplyService,
     private readonly notifications: NotificationsService,
   ) {}
 
@@ -51,8 +51,9 @@ export class ReviewProcessorService {
   }
 
   async processOne(review: ReviewWithDetail): Promise<void> {
+    // Risk assessment is stored for display/flags on the dashboard; the auto vs
+    // manual decision follows the Birdeye rules (below), not the risk level.
     const assessment = this.risk.assess(review.rating, review.reviewText);
-
     await this.prisma.reviewAnalysis.upsert({
       where: { reviewId: review.id },
       update: {
@@ -68,49 +69,35 @@ export class ReviewProcessorService {
       },
     });
 
-    const selection = selectReplyDraft({
-      brandName: review.location.brand.name,
+    const selection = await this.autoReply.selectDraft({
+      brandId: review.location.brandId,
       rating: review.rating,
       reviewText: review.reviewText,
       reviewerName: review.reviewerName,
       seed: review.externalReviewId || review.id,
     });
 
-    // Status, draft-only. Nothing is posted to Google from here.
-    //  - No approved template, or the review is high risk (low rating or a
-    //    flagged topic, e.g. a 5-star review that mentions rude staff):
-    //    hold for a person -> PENDING_APPROVAL.
-    //  - Safe positive with an approved template: ready draft on the dashboard
-    //    -> GENERATED. It is NOT auto-posted while BirdEye is still live.
-    const holdForPerson = !selection.draft || assessment.riskLevel === RiskLevel.HIGH;
-    const status = holdForPerson ? ReplyStatus.PENDING_APPROVAL : ReplyStatus.GENERATED;
-
-    // When there is no approved wording, surface the reason as the draft so the
-    // person knows to write it manually rather than seeing an empty box.
-    const draftText = selection.draft ?? (selection.note ?? "No approved template for this case. Please write a reply manually.");
+    // A rule matched -> ready draft (Birdeye would auto-post after the delay).
+    // No rule matched -> held for a person.
+    const status = selection.draft ? ReplyStatus.GENERATED : ReplyStatus.PENDING_APPROVAL;
+    const draftText = selection.draft ?? selection.note ?? "No matching auto-reply rule. Please write a reply manually.";
+    const aiModel = selection.templateName ?? "manual";
 
     await this.prisma.reply.upsert({
       where: { reviewId: review.id },
-      update: { aiDraft: draftText, status, aiProvider: "template", aiModel: "birdeye-approved-v1" },
-      create: {
-        reviewId: review.id,
-        aiDraft: draftText,
-        status,
-        aiProvider: "template",
-        aiModel: "birdeye-approved-v1",
-      },
+      update: { aiDraft: draftText, status, aiProvider: "birdeye-rule", aiModel },
+      create: { reviewId: review.id, aiDraft: draftText, status, aiProvider: "birdeye-rule", aiModel },
     });
 
     await this.reviews.markProcessed(review.id);
 
     if (status === ReplyStatus.PENDING_APPROVAL) {
-      const reason = selection.draft ? assessment.reason : (selection.note ?? assessment.reason);
-      await this.notifications.notifyNeedsApproval(review, reason);
+      await this.notifications.notifyNeedsApproval(review, selection.note ?? assessment.reason);
     }
 
     this.logger.log(
-      `Review ${review.id} (${review.rating}star, ${selection.category}) -> ${status}` +
-        (selection.variant ? ` [template variant ${selection.variant}]` : " [no approved template]"),
+      `Review ${review.id} (${review.rating}star) -> ${status}` +
+        (selection.ruleName ? ` [rule "${selection.ruleName}", ${selection.templateName}, delay ${selection.delayHours}h]` : " [no matching rule]"),
     );
   }
 }

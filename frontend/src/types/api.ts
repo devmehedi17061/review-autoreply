@@ -115,3 +115,31 @@ export interface SyncSummary {
   processed: number;
   failed: number;
 }
+
+export interface ResponseTemplate {
+  id: string;
+  brandId: string;
+  name: string;
+  body: string;
+  enabled: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CommentCondition = "PRESENT" | "ABSENT" | "ANY";
+
+export interface AutoReplyRule {
+  id: string;
+  brandId: string;
+  name: string;
+  platform: string;
+  enabled: boolean;
+  rank: number;
+  ratings: number[];
+  comment: CommentCondition;
+  delayHours: number;
+  templateIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}

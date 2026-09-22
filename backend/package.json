@@ -12,6 +12,7 @@
     "db:studio": "dotenv -e ../.env -- prisma studio",
     "db:seed": "dotenv -e ../.env -- tsx prisma/seed.ts",
     "db:seed-reviews": "dotenv -e ../.env -- tsx prisma/seed-reviews.ts",
+    "db:seed-config": "dotenv -e ../.env -- tsx prisma/seed-birdeye-config.ts",
     "test": "jest"
   },
   "prisma": {

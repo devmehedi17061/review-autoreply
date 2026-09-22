@@ -63,6 +63,14 @@ enum JobStatus {
   FAILED
 }
 
+/// Whether an auto-reply rule matches reviews that have written text, that have
+/// no text, or either. Mirrors Birdeye's "review text is present/not present".
+enum CommentCondition {
+  PRESENT
+  ABSENT
+  ANY
+}
+
 // ── Models ───────────────────────────────────────────────────────────────
 
 /// Staff who log into the dashboard to review/approve replies.
@@ -92,10 +100,59 @@ model Brand {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  locations        Location[]
-  platformAccounts PlatformAccount[]
+  locations         Location[]
+  platformAccounts  PlatformAccount[]
+  responseTemplates ResponseTemplate[]
+  autoReplyRules    AutoReplyRule[]
 
   @@map("brands")
+}
+
+/// A named, reusable reply wording (mirrors Birdeye "Response templates").
+/// Auto-reply rules reference these by id; the drafting engine fills in the
+/// reviewer's first name in place of ${Reviewer first name} / [Name].
+/// Editable from the dashboard - this is the configurable source of truth.
+model ResponseTemplate {
+  id        String   @id @default(cuid())
+  brandId   String
+  name      String
+  body      String
+  enabled   Boolean  @default(true)
+  createdBy String   @default("System")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, name])
+  @@index([brandId])
+  @@map("response_templates")
+}
+
+/// An auto-reply rule (mirrors Birdeye "Auto-reply rules"): for a brand's
+/// reviews matching a rating set + comment condition, reply by randomly picking
+/// one of `templateIds`, posted after `delayHours`. Higher `rank` wins when more
+/// than one rule matches. Fully editable from the dashboard.
+model AutoReplyRule {
+  id          String           @id @default(cuid())
+  brandId     String
+  name        String
+  platform    Platform         @default(GOOGLE)
+  enabled     Boolean          @default(true)
+  rank        Int              @default(0)
+  ratings     Int[]            @default([])
+  comment     CommentCondition @default(ANY)
+  delayHours  Int              @default(24)
+  /// Ordered ResponseTemplate ids this rule chooses between (the A/B/C/D variants).
+  templateIds String[]         @default([])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, name])
+  @@index([brandId])
+  @@map("auto_reply_rules")
 }
 
 /// A single campus/center that receives reviews.

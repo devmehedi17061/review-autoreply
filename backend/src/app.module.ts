@@ -10,6 +10,7 @@ import { ReviewsModule } from "./reviews/reviews.module";
 import { RepliesModule } from "./replies/replies.module";
 import { ReportsModule } from "./reports/reports.module";
 import { PlatformAccountsModule } from "./platform-accounts/platform-accounts.module";
+import { ReplyConfigModule } from "./reply-config/reply-config.module";
 
 @Module({})
 export class AppModule {
@@ -27,6 +28,7 @@ export class AppModule {
         RepliesModule,
         ReportsModule,
         PlatformAccountsModule,
+        ReplyConfigModule,
       ],
     };
   }

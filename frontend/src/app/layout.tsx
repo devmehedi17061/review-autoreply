@@ -11,7 +11,7 @@ const raleway = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "iBusinessFormula · Review Auto-Reply",
+  title: "Review Auto-Reply",
   description: "Unified Google review inbox and AI auto-reply dashboard for ACE Training & MultiSkills Training.",
 };
 
