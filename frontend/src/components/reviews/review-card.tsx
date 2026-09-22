@@ -75,7 +75,7 @@ export function ReviewCard({ review, onApprove, onReject }: ReviewCardProps) {
                     className="w-full rounded border border-gray-300 p-2 text-sm focus:border-brand-pink focus:outline-none"
                   />
                 ) : (
-                  <p className="text-sm text-gray-700">{reply.finalReply ?? reply.aiDraft}</p>
+                  <p className="whitespace-pre-wrap text-sm text-gray-700">{reply.finalReply ?? reply.aiDraft}</p>
                 )}
               </div>
 
