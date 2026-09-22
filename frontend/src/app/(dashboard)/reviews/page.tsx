@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReviewCard } from "@/components/reviews/review-card";
 import { StatTile } from "@/components/reviews/stat-tile";
+import { Pagination } from "@/components/ui/pagination";
 import { apiFetch } from "@/lib/api-client";
 import type { Brand, Review, ReviewStats } from "@/types/api";
 
@@ -17,6 +18,8 @@ export default function ReviewsPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const load = useCallback(async () => {
     setError(null);
@@ -56,6 +59,16 @@ export default function ReviewsPage() {
       );
     });
   }, [reviews, tab, search]);
+
+  // Reset to the first page whenever the filtered set changes.
+  useEffect(() => {
+    setPage(1);
+  }, [tab, search, selectedBrandId, pageSize]);
+
+  const pagedReviews = useMemo(
+    () => visibleReviews.slice((page - 1) * pageSize, page * pageSize),
+    [visibleReviews, page, pageSize],
+  );
 
   const counts = useMemo(
     () => ({
@@ -137,10 +150,20 @@ export default function ReviewsPage() {
       )}
 
       <div className="space-y-3">
-        {visibleReviews.map((review) => (
+        {pagedReviews.map((review) => (
           <ReviewCard key={review.id} review={review} onApprove={approve} onReject={reject} />
         ))}
       </div>
+
+      {visibleReviews.length > 0 && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={visibleReviews.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ReviewCard } from "@/components/reviews/review-card";
+import { Pagination } from "@/components/ui/pagination";
 import { apiFetch } from "@/lib/api-client";
 import type { Review } from "@/types/api";
 
@@ -10,6 +11,8 @@ export default function AlertsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const load = useCallback(async () => {
     try {
@@ -24,6 +27,15 @@ export default function AlertsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
+
+  const pagedReviews = useMemo(
+    () => reviews.slice((page - 1) * pageSize, page * pageSize),
+    [reviews, page, pageSize],
+  );
 
   async function approve(replyId: string, finalReply: string) {
     await apiFetch(`/replies/${replyId}`, { method: "PATCH", body: JSON.stringify({ finalReply }) });
@@ -56,10 +68,20 @@ export default function AlertsPage() {
       )}
 
       <div className="space-y-3">
-        {reviews.map((review) => (
+        {pagedReviews.map((review) => (
           <ReviewCard key={review.id} review={review} onApprove={approve} onReject={reject} />
         ))}
       </div>
+
+      {reviews.length > 0 && (
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={reviews.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      )}
     </div>
   );
 }

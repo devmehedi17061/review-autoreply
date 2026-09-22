@@ -110,7 +110,9 @@ export class ReviewsService {
       where,
       ...REVIEW_WITH_DETAIL,
       orderBy: { reviewedAt: "desc" },
-      take: 200,
+      // Generous cap: the dashboard paginates client-side. If the dataset grows
+      // well beyond this, switch this endpoint to server-side pagination.
+      take: 2000,
     });
   }
 
